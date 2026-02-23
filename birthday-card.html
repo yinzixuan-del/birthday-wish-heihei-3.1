@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Happy Birthday</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 第一页 - 视觉差名片 */
+        .page1 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background-image: url('http://localhost:3001/163727-15190294471b41.jpg?v=17');
+            background-size: cover;
+            background-position: center;
+            transition: opacity 0.8s ease;
+        }
+
+        .page1.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .slice-left,
+        .slice-right {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            background-image: url('http://localhost:3001/163727-15190294471b41.jpg?v=17');
+            background-size: cover;
+            opacity: .6;
+            transition: transform 1.5s ease, opacity 1.5s ease;
+        }
+
+        .slice-left {
+            left: 0;
+            background-position: left center;
+        }
+        .slice-right {
+            right: 0;
+            background-position: right center;
+        }
+        .slice-left.fade-out {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        .slice-right.fade-out {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        .title-text {
+            font: 900 80px 'Arial', sans-serif;
+            letter-spacing: 15px;
+            color: rgba(255, 248, 220, 0.95);
+            text-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.5),
+                0 0 40px rgba(255, 215, 0, 0.3),
+                2px 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            text-align: center;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .title-text.hide {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        /* 问答框样式 */
+        .question-box {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 25px 40px;
+            z-index: 20;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .question-box.hide {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+            pointer-events: none;
+        }
+        .question-title {
+            color: rgba(255, 248, 220, 0.95);
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .answer-input {
+            width: 200px;
+            padding: 12px 20px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .answer-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .answer-input:focus {
+            border-color: rgba(255, 215, 0, 0.8);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+        .answer-input.error {
+            border-color: rgba(255, 100, 100, 0.8);
+            animation: shake 0.5s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .submit-btn {
+            display: block;
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.6), rgba(255, 180, 0, 0.6));
+            border: none;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .submit-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.8), rgba(255, 180, 0, 0.8));
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+        .error-message {
+            color: rgba(255, 150, 150, 0.95);
+            font-size: 14px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .error-message.show {
+            opacity: 1;
+        }
+        /* 过渡层 - background.png */
+        .transition-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('http://localhost:3009/image/background.png');
+            background-size: cover;
+            background-position: center;
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+        .transition-layer.show {
+            opacity: 1;
+        }
+        .transition-layer.hide {
+            opacity: 0;
+        }
+        /* 第二页 - 3D卡片 */
+        .page2 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-image: url('http://localhost:3009/image/background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+        .page2.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* 中间暗边缘亮的遮罩效果 */
+        .page2::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, 
+                rgba(0, 0, 0, 0.7) 0%, 
+                rgba(0, 0, 0, 0.5) 30%, 
+                rgba(0, 0, 0, 0.3) 50%, 
+                rgba(0, 0, 0, 0.1) 70%, 
+                transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .shell {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 5%;
+            position: relative;
+            z-index: 1;
+        }
+        .card {
+            width: 320px;
+            height: 600px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 0 25px;
+            perspective: 2500px;
+            transition: all 0.4s;
+            cursor: pointer;
+        }
+        .card-left {
+            margin-right: auto;
+            margin-left: 8%;
+        }
+        .card-right {
+            margin-left: auto;
+            margin-right: 8%;
+        }
+        .cover-image {
+            width: 100%;
+            height: 100%;
+        }
+        .wrapper {
+            transition: all 0.3s;
+            position: absolute;
+            width: 100%;
+            z-index: -1;
+        }
+        .card:hover .wrapper {
+            transform: perspective(900px) translateY(-5%) rotateX(25deg) translateZ(0);
+            box-shadow: 2px 35px 32px -8px rgba(0, 0, 0, 0.75);
+        }
+        .wrapper::before,
+        .wrapper::after {
+            content: "";
+            opacity: 0;
+            width: 100%;
+            height: 80px;
+            transition: all 0.3s;
+            position: absolute;
+            left: 0;
+        }
+        .wrapper::before {
+            top: 0;
+            height: 100%;
+            background-image: linear-gradient(to top,
+                    transparent 46%,
+                    rgba(12, 13, 19, 0.5) 68%,
+                    rgba(12, 13, 19) 97%);
+        }
+        .wrapper::after {
+            bottom: 0;
+            opacity: 1;
+            background-image: linear-gradient(to bottom,
+                    transparent 46%,
+                    rgba(12, 13, 19, 0.5) 68%,
+                    rgba(12, 13, 19) 97%);
+        }
+        .card:hover .wrapper::before,
+        .wrapper::after {
+            opacity: 1;
+        }
+        .card:hover .wrapper::after {
+            height: 120px;
+        }
+        .card-title {
+            width: 100%;
+            transition: transform 0.3s;
+        }
+        .card:hover .card-title {
+            transform: translate3d(0%, -50px, 100px);
+        }
+        .character {
+            width: 100%;
+            opacity: 0;
+            transition: all 0.3s;
+            position: absolute;
+            z-index: -1;
+        }
+        .card:hover .character {
+            opacity: 1;
+            transform: translate3d(0%, -20%, 100px);
+        }
+        .card:hover {
+            transform: translateY(40px);
+        }
+        /* Next 按钮 */
+        .next-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 24px;
+            font-weight: bold;
+            color: transparent;
+            background: linear-gradient(135deg, #ffd700, #ffec8b, #ffd700, #daa520);
+            background-clip: text;
+            -webkit-background-clip: text;
+            text-shadow: 
+                0 0 10px rgba(255, 215, 0, 0.5),
+                0 0 20px rgba(255, 215, 0, 0.3);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+            letter-spacing: 3px;
+            padding: 10px 20px;
+            border: 2px solid transparent;
+            border-image: linear-gradient(135deg, #ffd700, #daa520) 1;
+        }
+        .next-btn:hover {
+            transform: scale(1.1);
+            text-shadow: 
+                0 0 15px rgba(255, 215, 0, 0.8),
+                0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        /* 第三页 - 祝福页 */
+        .page3 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('http://localhost:3001/photo6.jpg?v=20');
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            z-index: 200;
+        }
+        .page3.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* 照片容器 - 包裹整个祝福区域 */
+        .blessing-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+        /* 八张照片分布在整个屏幕 */
+        .photo {
+            position: fixed;
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            z-index: 5;
+        }
+        .photo:hover {
+            transform: scale(1.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+        /* 上方 */
+        .photo-top {
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .photo-top:hover {
+            transform: translateX(-50%) scale(1.15);
+        }
+        /* 下方 */
+        .photo-bottom {
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .photo-bottom:hover {
+            transform: translateX(-50%) scale(1.15);
+        }
+        /* 左侧 - 大照片 */
+        .photo-left {
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 200px;
+            height: 200px;
+        }
+        .photo-left:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+        /* 右侧 - 大照片 */
+        .photo-right {
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 200px;
+            height: 200px;
+        }
+        .photo-right:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+        /* 四个角落 - 左右两侧变大 */
+        .photo-corner-tl {
+            top: 15px;
+            left: 15px;
+            width: 180px;
+            height: 180px;
+        }
+        .photo-corner-tr {
+            top: 15px;
+            right: 15px;
+            width: 180px;
+            height: 180px;
+        }
+        .photo-corner-bl {
+            bottom: 15px;
+            left: 15px;
+            width: 180px;
+            height: 180px;
+        }
+        .photo-corner-br {
+            bottom: 15px;
+            right: 15px;
+            width: 180px;
+            height: 180px;
+        }
+        /* 玻璃效果文字框 */
+        .glass-box {
+            position: relative;
+            background: rgba(135, 206, 250, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 30px 45px;
+            max-width: min(500px, 80vw);
+            width: auto;
+            text-align: center;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            animation: fadeInUp 1s ease;
+            z-index: 10;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .glass-title {
+            font-size: clamp(18px, 4vw, 24px);
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 
+                0 0 3px #ffd700,
+                0 0 5px #ffd700,
+                0 0 8px #daa520,
+                1px 1px 0 #b8860b,
+                -1px -1px 0 #b8860b,
+                1px -1px 0 #b8860b,
+                -1px 1px 0 #b8860b;
+        }
+        .glass-content {
+            font-size: clamp(13px, 2.5vw, 15px);
+            line-height: 1.9;
+            color: white;
+            font-weight: bold;
+            text-shadow: 
+                0 0 3px #ffd700,
+                0 0 5px #ffd700,
+                0 0 8px #daa520,
+                1px 1px 0 #b8860b,
+                -1px -1px 0 #b8860b,
+                1px -1px 0 #b8860b,
+                -1px 1px 0 #b8860b;
+        }
+        .glass-content .name {
+            color: white;
+            font-weight: bold;
+            text-shadow: 
+                0 0 3px #ffd700,
+                0 0 5px #ffd700,
+                0 0 8px #daa520,
+                1px 1px 0 #b8860b,
+                -1px -1px 0 #b8860b,
+                1px -1px 0 #b8860b,
+                -1px 1px 0 #b8860b;
+        }
+        .glass-content .signature {
+            display: block;
+            margin-top: 18px;
+            text-align: right;
+            color: white;
+            font-style: italic;
+            font-weight: bold;
+            text-shadow: 
+                0 0 3px #ffd700,
+                0 0 5px #ffd700,
+                0 0 8px #daa520,
+                1px 1px 0 #b8860b,
+                -1px -1px 0 #b8860b,
+                1px -1px 0 #b8860b,
+                -1px 1px 0 #b8860b;
+        }
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .photo {
+                width: 80px;
+                height: 80px;
+            }
+            .glass-box {
+                padding: 20px 25px;
+                max-width: 85vw;
+            }
+        }
+        @media (max-width: 480px) {
+            .photo {
+                width: 60px;
+                height: 60px;
+            }
+            .glass-box {
+                padding: 15px 20px;
+                max-width: 90vw;
+            }
+        }
+        
+    </style>
+</head>
+
+<body>
+
+    <!-- 音频元素 -->
+    <audio id="audio-transition" src="http://localhost:3001/radio3.mp3" preload="auto"></audio>
+    <audio id="audio1" src="http://localhost:3009/image/radio1.mp3" preload="auto"></audio>
+    <audio id="audio2" src="http://localhost:3009/image/radio2.mp3" preload="auto"></audio>
+
+    <!-- 第一页 - 视觉差名片 -->
+    <div class="page1" id="page1">
+        <div class="slice-left" id="slice-left"></div>
+        <div class="slice-right" id="slice-right"></div>
+        <p class="title-text" id="title-text">HAPPY BIRTHDAY</p>
+        
+        <!-- 问答框 -->
+        <div class="question-box" id="question-box">
+            <div class="question-title">回答解锁开门</div>
+            <input type="text" class="answer-input" id="answer-input" placeholder="请输入答案">
+            <button class="submit-btn" id="submit-btn">确认</button>
+            <div class="error-message" id="error-message">答案不正确，请再想想~</div>
+        </div>
+    </div>
+
+    <!-- 过渡层 -->
+    <div class="transition-layer" id="transition-layer"></div>
+
+    <!-- 第二页 - 3D卡片 -->
+    <div class="page2" id="page2">
+        <div class="shell">
+            <div class="card card-left" id="card-left">
+                <div class="wrapper">
+                    <img src="http://localhost:3009/image/01.png?v=17" alt="" class="cover-image">
+                </div>
+                <img src="http://localhost:3009/image/text-1.png?v=17" alt="" class="card-title">
+                <img src="http://localhost:3009/image/02.png?v=17" alt="" class="character">
+            </div>
+
+            <div class="card card-right" id="card-right">
+                <div class="wrapper">
+                    <img src="http://localhost:3009/image/03.png?v=17" alt="" class="cover-image">
+                </div>
+                <img src="http://localhost:3009/image/text-2.png?v=17" alt="" class="card-title">
+                <img src="http://localhost:3009/image/04.png?v=17" alt="" class="character">
+            </div>
+        </div>
+        
+        <!-- Next 按钮 -->
+        <div class="next-btn" id="next-btn">NEXT →</div>
+    </div>
+
+    <!-- 第三页 - 祝福页 -->
+    <div class="page3" id="page3">
+        <!-- 八张照片分布在整个屏幕 -->
+        <img src="http://localhost:3010/photo1.jpg" class="photo photo-top" alt="">
+        <img src="http://localhost:3010/photo2.jpg" class="photo photo-bottom" alt="">
+        <img src="http://localhost:3010/photo3.jpg" class="photo photo-left" alt="">
+        <img src="http://localhost:3010/photo4.jpg" class="photo photo-right" alt="">
+        <img src="http://localhost:3010/photo5.jpg" class="photo photo-corner-tl" alt="">
+        <img src="http://localhost:3010/photo6.jpg" class="photo photo-corner-tr" alt="">
+        <img src="http://localhost:3010/photo7.jpg" class="photo photo-corner-bl" alt="">
+        <img src="http://localhost:3010/photo8.jpg" class="photo photo-corner-br" alt="">
+        
+        <!-- 祝福容器 -->
+        <div class="blessing-container">
+            <!-- 玻璃效果文字框 -->
+            <div class="glass-box">
+                <div class="glass-title">致喜欢推理的黑黑</div>
+                <div class="glass-content">
+                    祝福<span class="name">黑黑</span>：<br><br>
+                    虽然你说做个专属个人网址可能没有惊喜，<br>
+                    但是你是我很好的朋友，<br>
+                    我想给你做一个比较有意义的专属网址。<br>
+                    以前你就喜欢推理有关的东西，<br>
+                    所以这次的主题也是跟推理相关的。<br>
+                    还有以后还要跟我一起去旅游，我觉得很开心啊，<br>
+                    你可能会觉得去南昌玩，住的不是很好，<br>
+                    但是对我来说，跟朋友呆在一起就很开心。<br>
+                    最后希望你喜欢我做的这个，天天开心！<br>
+                    <span class="signature">—— 猪头</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const page1 = document.getElementById('page1');
+        const page2 = document.getElementById('page2');
+        const page3 = document.getElementById('page3');
+        const transitionLayer = document.getElementById('transition-layer');
+        const sliceLeft = document.getElementById('slice-left');
+        const sliceRight = document.getElementById('slice-right');
+        const titleText = document.getElementById('title-text');
+        const questionBox = document.getElementById('question-box');
+        const answerInput = document.getElementById('answer-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorMessage = document.getElementById('error-message');
+        const nextBtn = document.getElementById('next-btn');
+        const audioTransition = document.getElementById('audio-transition');
+        const audio1 = document.getElementById('audio1');
+        const audio2 = document.getElementById('audio2');
+        const cardLeft = document.getElementById('card-left');
+        const cardRight = document.getElementById('card-right');
+
+        let isTransitioning = false;
+
+        const correctAnswers = [
+            '3月1日',
+            '3.1',
+            '03/01',
+            '3/1',
+            '三月一日',
+            '3月1',
+            '31',
+            '0301'
+        ];
+
+        function checkAnswer() {
+            const userAnswer = answerInput.value.trim();
+            const isCorrect = correctAnswers.some(answer => 
+                userAnswer.toLowerCase() === answer.toLowerCase()
+            );
+
+            if (isCorrect) {
+                startTransition();
+            } else {
+                answerInput.classList.add('error');
+                errorMessage.classList.add('show');
+                
+                setTimeout(() => {
+                    answerInput.classList.remove('error');
+                }, 500);
+
+                setTimeout(() => {
+                    errorMessage.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        function startTransition() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            audioTransition.currentTime = 0;
+            audioTransition.play();
+
+            titleText.classList.add('hide');
+            questionBox.classList.add('hide');
+
+            setTimeout(() => {
+                sliceLeft.classList.add('fade-out');
+                sliceRight.classList.add('fade-out');
+            }, 300);
+
+            setTimeout(() => {
+                transitionLayer.classList.add('show');
+            }, 1000);
+
+            setTimeout(() => {
+                page1.classList.add('hidden');
+            }, 1500);
+
+            setTimeout(() => {
+                transitionLayer.classList.remove('show');
+                transitionLayer.classList.add('hide');
+                page2.classList.add('show');
+            }, 2300);
+        }
+
+        submitBtn.addEventListener('click', checkAnswer);
+
+        answerInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        answerInput.addEventListener('input', function() {
+            errorMessage.classList.remove('show');
+        });
+
+        cardLeft.addEventListener('click', function() {
+            audio1.currentTime = 0;
+            audio1.play();
+        });
+
+        cardRight.addEventListener('click', function() {
+            audio2.currentTime = 0;
+            audio2.play();
+        });
+
+        nextBtn.addEventListener('click', function() {
+            page2.style.opacity = '0';
+            page2.style.pointerEvents = 'none';
+            setTimeout(() => {
+                page3.classList.add('show');
+            }, 500);
+        });
+    </script>
+
+</body>
+
+</html>
